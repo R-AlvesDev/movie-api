@@ -15,6 +15,6 @@ export class Movie {
   @Column({ type: 'date' })
   releaseDate: Date;
 
-  @ManyToMany(() => Genre)
+  @ManyToMany(() => Genre , { lazy: true })
   genres: Genre[];
 }

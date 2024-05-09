@@ -1,49 +1,61 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { Movie } from './movie.model';
 import { MovieRepository } from './movie.repository';
 
 @Injectable()
 export class MovieService {
   constructor(
-    @InjectRepository(MovieRepository)
-    private readonly movieRepository: MovieRepository,
-  ) {
-    console.log('MovieRepository in MovieService:', this.movieRepository);
-  }
+    @InjectRepository(Movie)
+    private readonly movieBaseRepository: Repository<Movie>,
+    private readonly movieCustomRepository: MovieRepository,
+  ) {}
 
   async findAll(): Promise<Movie[]> {
-    return await this.movieRepository.find({ relations: ['genres'] }); // Eager loading for genres
+    // Using movieBaseRepository for standard operations
+    return await this.movieBaseRepository.find({ relations: ['genres'] });
   }
-
+  
   async findOne(id: number): Promise<Movie> {
-    return await this.movieRepository.findOne({ where: { id }, relations: ['genres'] });
+    const movie = await this.movieBaseRepository.findOne({ where: { id }, relations: ['genres'] });
+    if (!movie) {
+      throw new NotFoundException(`Movie with ID ${id} not found`);
+    }
+    return movie;
   }
-
+  
   async create(movie: Movie): Promise<Movie> {
-    return await this.movieRepository.save(movie);
+    // Assuming create is a standard operation, using movieBaseRepository
+    return await this.movieBaseRepository.save(movie);
   }
-
-  async update(id: number, movie: Movie): Promise<Movie> {
-    await this.movieRepository.update(id, movie);
-    return await this.findOne(id);
+  
+  async update(id: number, movieData: Movie): Promise<Movie> {
+    const movie = await this.movieBaseRepository.findOneBy({ id });
+    if (!movie) {
+      throw new NotFoundException(`Movie with ID ${id} not found`);
+    }
+    await this.movieBaseRepository.update(id, movieData);
+    return await this.findOne(id); // This will load the updated movie with its relations
   }
-
+  
   async delete(id: number): Promise<void> {
-    await this.movieRepository.delete(id);
+    const movie = await this.movieBaseRepository.findOneBy({ id });
+    if (!movie) {
+      throw new NotFoundException(`Movie with ID ${id} not found`);
+    }
+    await this.movieBaseRepository.delete(id);
   }
 
   async findByTitle(title: string): Promise<Movie[]> {
-    return await this.movieRepository.find({
-      where: { title: Like(`%${title}%`) }, // Search by title containing the provided string
+    return await this.movieCustomRepository.find({
+      where: { title: Like(`%${title}%`) },
     });
   }
 
   async findByGenre(genre: string): Promise<Movie[]> {
-    return await this.movieRepository.find({
+    return await this.movieCustomRepository.find({
       where: { genres: Like(`%${genre}%`) },
     });
   }  
-  
 }

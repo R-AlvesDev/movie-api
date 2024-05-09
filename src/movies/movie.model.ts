@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
 import { Genre } from '../genres/genre.model';
 
 @Entity()
@@ -15,6 +15,6 @@ export class Movie {
   @Column({ type: 'date' })
   releaseDate: Date;
 
-  @ManyToMany(() => Genre , { lazy: true })
+  @OneToMany(() => Genre, genre => genre.movies)
   genres: Genre[];
 }

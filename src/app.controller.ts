@@ -1,7 +1,10 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Delete, Body, Param, Res } from '@nestjs/common';
 import { MovieService } from './movies/movie.service';
 import { GenreService } from './genres/genre.service';
 import { Movie } from './movies/movie.model';
+import { Genre } from './genres/genre.model';
+import { Response } from 'express';
+
 
 @Controller('/')
 export class AppController {
@@ -11,22 +14,45 @@ export class AppController {
   ) {}
 
   @Get('/')
-  async home() {
-    return 'Welcome to your NestJS Movie API!';
+  async home(@Res() res: Response) {
+    res.redirect('/api/docs');
   }
 
-  // Get all movies
   @Get('/movies')
   async findAllMovies(): Promise<Movie[]> {
     return await this.movieService.findAll();
   }
 
-  // Get a movie by ID
   @Get('/movies/:id')
   async findOneMovie(@Param('id') id: number): Promise<Movie> {
     return await this.movieService.findOne(id);
   }
 
-  // Additional routes can be added here for other functionalities
-  // (e.g., create, update, delete movies, manage genres)
+  @Post('/movies')
+  async createMovie(@Body() movie: Movie): Promise<Movie> {
+    return await this.movieService.create(movie);
+  }
+
+  @Put('/movies/:id')
+  async updateMovie(@Param('id') id: number, @Body() movie: Movie): Promise<Movie> {
+    return await this.movieService.update(id, movie);
+  }
+
+  @Delete('/movies/:id')
+  async deleteMovie(@Param('id') id: number): Promise<void> {
+    return await this.movieService.delete(id);
+  }
+
+  // Genre management
+  @Get('/genres')
+  async findAllGenres(): Promise<Genre[]> {
+    return await this.genreService.findAll();
+  }
+
+  @Post('/genres')
+  async createGenre(@Body() genre: Genre): Promise<Genre> {
+    return await this.genreService.create(genre);
+  }
+
+  // Add more genre routes as necessary (e.g., update, delete)
 }

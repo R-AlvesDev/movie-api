@@ -13,8 +13,9 @@ import ormconfig from '../ormconfig';
 @Module({
   imports: [
     TypeOrmModule.forRoot(ormconfig),
+    TypeOrmModule.forFeature([Movie, Genre]),
   ],
   controllers: [AppController],
-  providers: [GenreService, MovieService, GenreRepository, MovieRepository],
+  providers: [GenreService, MovieService, MovieRepository, GenreRepository],
 })
 export class AppModule {}

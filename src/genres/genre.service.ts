@@ -7,8 +7,8 @@ import { GenreRepository } from './genre.repository';
 @Injectable()
 export class GenreService {
   constructor(
-    @InjectRepository(GenreRepository)
-    private readonly genreRepository: GenreRepository,
+    @InjectRepository(Genre)
+    private readonly genreRepository: Repository<Genre>,
   ) {}
 
   async findAll(): Promise<Genre[]> {

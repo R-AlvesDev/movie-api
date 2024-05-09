@@ -1,7 +1,11 @@
 import { Controller, Get, Post, Put, Delete, Body, Param, Query } from '@nestjs/common';
 import { MovieService } from './movie.service';
 import { Movie } from './movie.model';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { CreateMovieDto } from './dtos/create-movie.dto';
+import { UpdateMovieDto } from './dtos/update-movie.dto';
 
+@ApiTags('Movie')
 @Controller('movies')
 export class MoviesController {
   constructor(private readonly moviesService: MovieService) {}
@@ -13,17 +17,24 @@ export class MoviesController {
 
   @Get(':id')
   async findOne(@Param('id') id: number): Promise<Movie> {
-    return await this.moviesService.findOne(id); // Removed relations argument
+    return await this.moviesService.findOne(id); 
   }
 
   @Post()
-  async create(@Body() movie: Movie): Promise<Movie> {
-    return await this.moviesService.create(movie);
+  async create(@Body() createMovieDto: CreateMovieDto): Promise<Movie> {
+    return this.moviesService.create(createMovieDto);
   }
 
   @Put(':id')
-  async update(@Param('id') id: number, @Body() movie: Movie): Promise<Movie> {
-    return await this.moviesService.update(id, movie);
+  async update(@Param('id') id: number, @Body() updateMovieDto: UpdateMovieDto): Promise<Movie> {
+    const updatedMovie: Movie = {
+      ...updateMovieDto,
+      title: updateMovieDto.title,
+      description: updateMovieDto.description,
+      releaseDate: updateMovieDto.releaseDate,
+      genres: updateMovieDto.genres,
+     };
+     return this.moviesService.update(id, updatedMovie);
   }
 
   @Delete(':id')

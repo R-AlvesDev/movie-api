@@ -4,6 +4,7 @@ import { GenreService } from './genres/genre.service';
 import { Movie } from './movies/movie.model';
 import { Genre } from './genres/genre.model';
 import { Response } from 'express';
+import { CreateMovieDto } from './movies/dtos/create-movie.dto';
 
 
 @Controller('/')
@@ -29,9 +30,16 @@ export class AppController {
   }
 
   @Post('/movies')
-  async createMovie(@Body() movie: Movie): Promise<Movie> {
-    return await this.movieService.create(movie);
-  }
+  async createMovie(@Body() movie: CreateMovieDto): Promise<Movie> {
+    const createMovieDto: CreateMovieDto = {
+      title: movie.title,
+      description: movie.description,
+      releaseDate: movie.releaseDate,
+      genres: movie.genres, 
+    };
+  
+    return await this.movieService.create(createMovieDto);
+  }z
 
   @Put('/movies/:id')
   async updateMovie(@Param('id') id: number, @Body() movie: Movie): Promise<Movie> {
@@ -54,5 +62,4 @@ export class AppController {
     return await this.genreService.create(genre);
   }
 
-  // Add more genre routes as necessary (e.g., update, delete)
 }

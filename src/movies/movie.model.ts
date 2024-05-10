@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, JoinTable } from 'typeorm';
 import { Genre } from '../genres/genre.model';
 
 @Entity()
@@ -15,6 +15,7 @@ export class Movie {
   @Column({ type: 'date' })
   releaseDate: Date;
 
-  @OneToMany(() => Genre, genre => genre.movies)
+  @ManyToMany(() => Genre, genre => genre.movies)
+  @JoinTable()
   genres: Genre[];
 }

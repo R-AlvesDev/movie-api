@@ -1,10 +1,13 @@
 import { Controller, Get, Post, Put, Delete, Body, Param } from '@nestjs/common';
 import { GenreService } from './genre.service';
 import { Genre } from './genre.model';
+import { CreateGenreDto } from './dtos/create-genre.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Genre')
 @Controller('genres')
 export class GenreController {
-  constructor(private readonly genresService: GenreService) {}
+  constructor(private readonly genresService: GenreService,) {}
 
   @Get()
   async findAll(): Promise<Genre[]> {
@@ -17,8 +20,8 @@ export class GenreController {
   }
 
   @Post()
-  async create(@Body() genre: Genre): Promise<Genre> {
-    return await this.genresService.create(genre);
+  async create(@Body() createGenreDto: CreateGenreDto): Promise<Genre> {
+    return await this.genresService.create(createGenreDto);
   }
 
   @Put(':id')
@@ -27,7 +30,7 @@ export class GenreController {
   }
 
   @Delete(':id')
-  async delete(@Param('id') id: number): Promise<void> {
-    await this.genresService.delete(id);
+  async delete(@Param('id') id: number): Promise<{ message: string }> {
+    return await this.genresService.delete(id);
   }
 }

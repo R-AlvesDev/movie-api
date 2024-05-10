@@ -9,13 +9,15 @@ import { MovieRepository } from './movies/movie.repository';
 import { Movie } from './movies/movie.model';
 
 import ormconfig from '../ormconfig';
+import { MoviesController } from './movies/movie.controller';
+import { GenreController } from './genres/genre.controller';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(ormconfig),
     TypeOrmModule.forFeature([Movie, Genre]),
   ],
-  controllers: [AppController],
+  controllers: [AppController, MoviesController, GenreController],
   providers: [GenreService, MovieService, MovieRepository, GenreRepository],
 })
 export class AppModule {}

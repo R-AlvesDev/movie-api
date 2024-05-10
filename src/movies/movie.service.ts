@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Like, Repository } from 'typeorm';
+import { Like, Repository, In } from 'typeorm';
 import { Movie } from './movie.model';
 import { MovieRepository } from './movie.repository';
 import { CreateMovieDto } from './dtos/create-movie.dto';
@@ -12,13 +12,16 @@ export class MovieService {
   constructor(
     @InjectRepository(Movie)
     private readonly movieBaseRepository: Repository<Movie>,
-    private readonly movieCustomRepository: MovieRepository,
     @InjectRepository(Genre)
     private readonly genreRepository: GenreRepository,
   ) {}
 
-  async findAll(): Promise<Movie[]> {
-    return await this.movieBaseRepository.find({ relations: ['genres'] });
+  async findAll(page: number = 1, limit: number = 10): Promise<Movie[]> {
+    return await this.movieBaseRepository.find({
+      relations: ['genres'],
+      skip: (page - 1) * limit,
+      take: limit,
+    });
   }
   
   async findOne(id: number): Promise<Movie> {
@@ -91,25 +94,34 @@ export class MovieService {
     return { message: `Movie with ID ${id} has been successfully deleted` };
   }
 
-  async search(title?: string, genre?: string): Promise<Movie[]> {
-    let whereCondition = [];
-    
-    if (title) {
-      whereCondition.push({ title: Like(`%${title}%`) });
-    }
-    
-    if (genre) {
-      whereCondition.push({ 'genres': Like(`%${genre}%`) });
-    }
-    
-    if (whereCondition.length === 0) {
-      return this.findAll();
-    }
-
-    return await this.movieBaseRepository.find({
-      where: whereCondition,
+  async search(title?: string, genre?: string, page: number = 1, limit: number = 10): Promise<Movie[]> {
+    let findOptions = {
       relations: ['genres'],
-    });
+      skip: (page - 1) * limit,
+      take: limit,
+    };
+  
+    let whereConditions = [];
+  
+    if (genre) {
+      const genreEntities = await this.genreRepository.find({
+        where: { name: Like(`%${genre}%`) }
+      });
+      if (genreEntities.length > 0) {
+        const genreIds = genreEntities.map(genre => genre.id);
+        whereConditions.push({ genres: { id: In(genreIds) } });
+      }
+    }
+  
+    if (title) {
+      whereConditions.push({ title: Like(`%${title}%`) });
+    }
+  
+    if (whereConditions.length > 0) {
+      findOptions['where'] = whereConditions.length === 1 ? whereConditions[0] : { $or: whereConditions };
+    }
+  
+    return await this.movieBaseRepository.find(findOptions);
   }
 
 }

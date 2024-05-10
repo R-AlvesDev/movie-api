@@ -24,11 +24,6 @@ export class GenreController {
     return await this.genresService.create(createGenreDto);
   }
 
-  @Put(':id')
-  async update(@Param('id') id: number, @Body() genre: Genre): Promise<Genre> {
-    return await this.genresService.update(id, genre);
-  }
-
   @Delete(':id')
   async delete(@Param('id') id: number): Promise<{ message: string }> {
     return await this.genresService.delete(id);

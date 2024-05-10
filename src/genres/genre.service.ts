@@ -1,15 +1,16 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
 import { Genre } from './genre.model';
 import { GenreRepository } from './genre.repository';
 import { CreateGenreDto } from './dtos/create-genre.dto';
+import { MovieRepository } from 'src/movies/movie.repository';
 
 @Injectable()
 export class GenreService {
   constructor(
     @InjectRepository(Genre)
-    private readonly genreRepository: Repository<Genre>,
+    private readonly genreRepository: GenreRepository,
+    private readonly movieRepository: MovieRepository
   ) {}
 
   async findAll(): Promise<Genre[]> {
@@ -35,20 +36,23 @@ export class GenreService {
     return await this.genreRepository.save(genre);
   }
 
-  async update(id: number, genre: Genre): Promise<Genre> {
-    await this.genreRepository.update(id, genre);
-    return await this.genreRepository.findOne({ where: { id } });
-  }
-
   async delete(id: number): Promise<{ message: string }> {
-    const genre = await this.genreRepository.findOneBy({ id });
-
-    if(!genre){
+    const genre = await this.genreRepository.findOne({ where: { id }, relations: ['movies'] });
+  
+    if (!genre) {
       throw new NotFoundException(`Genre with ID ${id} not found`);
     }
-
+  
+    // If the genre is associated with any movies, remove the genre from those movies
+    if (genre.movies && genre.movies.length > 0) {
+      await this.movieRepository.createQueryBuilder()
+        .relation(Genre, "movies")
+        .of(genre)
+        .remove(genre.movies);
+    }
+  
     await this.genreRepository.delete(id);
-
-    return { message: `Genre with ID ${id} has been successfully deleted` }
+  
+    return { message: `Genre with ID ${id} has been successfully deleted` };
   }
 }
